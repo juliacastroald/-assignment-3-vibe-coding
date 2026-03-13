@@ -142,3 +142,50 @@ button:hover {
   font-size: 0.8rem;
   color: #6e7681 !important;
 }
+
+/* ── Character selection ── */
+
+.character-select {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.character-label {
+  color: #8b949e;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.character-options {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.character-btn {
+  padding: 0;
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.6rem;
+  background: #21262d;
+  border: 2px solid #30363d;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 0;
+  transition: border-color 0.15s, background 0.15s;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.character-btn:hover {
+  background: #2d333b;
+  border-color: #58a6ff;
+}
+
+.character-btn.selected {
+  background: #0d419d;
+  border-color: #58a6ff;
+}

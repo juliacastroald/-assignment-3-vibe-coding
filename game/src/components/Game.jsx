@@ -11,7 +11,7 @@ const GRAVITY = 0.55
 const JUMP_FORCE = -11
 const SCROLL_SPEED = 3
 
-function Game({ onGameOver }) {
+function Game({ onGameOver, character }) {
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -33,6 +33,9 @@ function Game({ onGameOver }) {
       paused: false,
       elapsed: 0,
       lastTime: null,
+      poweredUp: false,
+      powerUpTimer: 0,
+      bonusScore: 0,
     }
 
     for (let i = 0; i < 6; i++) spawnPlatform()
@@ -51,6 +54,16 @@ function Game({ onGameOver }) {
           y: GROUND - 44 - Math.random() * 20,
           type: isStar ? 'star' : 'coin',
           r: isStar ? 10 : 8,
+          collected: false,
+        })
+      }
+
+      if (Math.random() > 0.85) {
+        s.collectibles.push({
+          x: x + w * (0.25 + Math.random() * 0.5),
+          y: GROUND - 44 - Math.random() * 20,
+          type: 'mushroom',
+          r: 10,
           collected: false,
         })
       }
@@ -78,7 +91,15 @@ function Game({ onGameOver }) {
     window.addEventListener('keydown', onKey)
 
 
-    function update() {
+    function update(dt) {
+      if (s.poweredUp) {
+        s.powerUpTimer -= dt
+        if (s.powerUpTimer <= 0) {
+          s.poweredUp = false
+          s.powerUpTimer = 0
+        }
+      }
+
       s.scrollX += SCROLL_SPEED
 
       while (s.nextPlatformEnd - s.scrollX < W + 300) spawnPlatform()
@@ -110,7 +131,11 @@ function Game({ onGameOver }) {
 
       if (s.playerY > H + 40) {
         s.dead = true
-        onGameOver([...s.inventory])
+        const finalInv = [...s.inventory]
+        if (s.bonusScore > 0) {
+          finalInv.push({ name: 'power-up bonus', value: s.bonusScore, quantity: 1 })
+        }
+        onGameOver(finalInv)
         return
       }
 
@@ -124,7 +149,14 @@ function Game({ onGameOver }) {
           pb > c.y - c.r
         ) {
           c.collected = true
-          s.inventory = addItem(s.inventory, c.type, c.type === 'star' ? 5 : 1, 1)
+          if (c.type === 'mushroom') {
+            s.poweredUp = true
+            s.powerUpTimer = 10
+          } else {
+            const baseValue = c.type === 'star' ? 5 : 1
+            s.inventory = addItem(s.inventory, c.type, baseValue, 1)
+            if (s.poweredUp) s.bonusScore += baseValue
+          }
         }
       }
     }
@@ -163,6 +195,26 @@ function Game({ onGameOver }) {
       ctx.fillText('$', cx, cy + 0.5)
     }
 
+    function drawMushroom(cx, cy, r) {
+      // Stem
+      ctx.fillStyle = '#f5deb3'
+      ctx.fillRect(cx - r * 0.35, cy, r * 0.7, r * 0.75)
+      // Cap
+      ctx.beginPath()
+      ctx.arc(cx, cy, r, Math.PI, 0)
+      ctx.closePath()
+      ctx.fillStyle = '#e63946'
+      ctx.fill()
+      // White spots
+      ctx.fillStyle = 'white'
+      ctx.beginPath()
+      ctx.arc(cx - r * 0.3, cy - r * 0.25, r * 0.18, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(cx + r * 0.28, cy - r * 0.3, r * 0.14, 0, Math.PI * 2)
+      ctx.fill()
+    }
+
     // ── draw ─────────────────────────────────────────────────────────────────
 
     function draw() {
@@ -189,17 +241,15 @@ function Game({ onGameOver }) {
         if (c.collected) continue
         const cx = c.x - s.scrollX
         if (c.type === 'coin') drawCoin(cx, c.y, c.r)
-        else drawStar(cx, c.y, c.r)
+        else if (c.type === 'star') drawStar(cx, c.y, c.r)
+        else drawMushroom(cx, c.y, c.r)
       }
 
-      ctx.fillStyle = s.onGround ? '#e63946' : '#ff6b81'
-      ctx.fillRect(PLAYER_X, s.playerY, PLAYER_W, PLAYER_H)
-      ctx.fillStyle = 'white'
-      ctx.fillRect(PLAYER_X + 5, s.playerY + 6, 6, 6)
-      ctx.fillRect(PLAYER_X + 15, s.playerY + 6, 6, 6)
-      ctx.fillStyle = '#111'
-      ctx.fillRect(PLAYER_X + 7, s.playerY + 8, 3, 3)
-      ctx.fillRect(PLAYER_X + 17, s.playerY + 8, 3, 3)
+      // Draw player as selected emoji
+      ctx.font = `${PLAYER_H + 2}px sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'top'
+      ctx.fillText(character, PLAYER_X + PLAYER_W / 2, s.playerY)
 
       const coins = findItem(s.inventory, 'coin')
       const stars = findItem(s.inventory, 'star')
@@ -213,13 +263,22 @@ function Game({ onGameOver }) {
       ctx.fillStyle = '#ffe566'
       ctx.fillText(`Stars: ${stars ? stars.quantity : 0}`, 10, 30)
 
+      const displayScore = getTotal(s.inventory) + s.bonusScore
       ctx.fillStyle = '#ffffff'
       ctx.textAlign = 'right'
-      ctx.fillText(`Score: ${getTotal(s.inventory)}`, W - 10, 10)
+      ctx.fillText(`Score: ${displayScore}`, W - 10, 10)
 
       ctx.fillStyle = 'rgba(255,255,255,0.9)'
       ctx.textAlign = 'right'
       ctx.fillText(`Time: ${s.elapsed.toFixed(1)}s`, W - 10, 30)
+
+      if (s.poweredUp) {
+        ctx.fillStyle = '#ff6b35'
+        ctx.font = 'bold 13px monospace'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'top'
+        ctx.fillText(`⚡ 2× POWER UP — ${s.powerUpTimer.toFixed(1)}s`, W / 2, 10)
+      }
     }
 
     // ── loop ─────────────────────────────────────────────────────────────────
@@ -238,12 +297,14 @@ function Game({ onGameOver }) {
         return
       }
 
+      let dt = 0
       if (s.lastTime !== null) {
-        s.elapsed += (timestamp - s.lastTime) / 1000
+        dt = (timestamp - s.lastTime) / 1000
+        s.elapsed += dt
       }
       s.lastTime = timestamp
 
-      update()
+      update(dt)
       if (!s.dead) {
         draw()
         s.raf = requestAnimationFrame(loop)
@@ -256,7 +317,7 @@ function Game({ onGameOver }) {
       cancelAnimationFrame(s.raf)
       window.removeEventListener('keydown', onKey)
     }
-  }, [onGameOver])
+  }, [onGameOver, character])
 
   return (
     <canvas

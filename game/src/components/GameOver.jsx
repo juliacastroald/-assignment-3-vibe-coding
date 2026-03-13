@@ -4,6 +4,7 @@ function GameOver({ inventory, onRestart }) {
 
   const coins = findItem(inventory, 'coin')
   const stars = findItem(inventory, 'star')
+  const bonus = findItem(inventory, 'power-up bonus')
   const score = getTotal(inventory)
   const totalItems = getItemCount(inventory)
 
@@ -20,6 +21,12 @@ function GameOver({ inventory, onRestart }) {
             <td>Stars collected</td>
             <td>{stars ? stars.quantity : 0}</td>
           </tr>
+          {bonus && (
+            <tr>
+              <td>⚡ Power-up bonus</td>
+              <td>+{bonus.value}</td>
+            </tr>
+          )}
           <tr>
             <td>Total items</td>
             <td>{totalItems}</td>
@@ -30,7 +37,7 @@ function GameOver({ inventory, onRestart }) {
           </tr>
         </tbody>
       </table>
-      <p className="score-note">Stars = 5 pts · Coins = 1 pt</p>
+      <p className="score-note">Stars = 5 pts · Coins = 1 pt · Mushroom = 2× for 10s</p>
       <button onClick={onRestart}>Play Again</button>
     </div>
   )
