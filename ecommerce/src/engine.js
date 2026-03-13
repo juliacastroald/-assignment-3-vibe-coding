@@ -37,7 +37,7 @@ export function updateQuantity(items, name, quantity) {
 }
 
 export function getTotal(items) {
-  return items.reduce((sum, item) => sum + item.value + item.quantity, 0);
+  return items.reduce((sum, item) => sum + item.value * item.quantity, 0);
 }
 
 export function getItemCount(items) {
