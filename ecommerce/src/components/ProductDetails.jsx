@@ -25,7 +25,7 @@ function ProductDetails({ onAddToCart, onColorChange }) {
       return
     }
     setSizeError(false)
-    onAddToCart('501 Original Fit', PRICE, qty, selectedWaist, selectedLength)
+    onAddToCart(`501 Original Fit – ${COLORS[selectedColor].name}`, PRICE, qty, selectedWaist, selectedLength)
     setSelectedWaist(null)
     setSelectedLength(null)
   }

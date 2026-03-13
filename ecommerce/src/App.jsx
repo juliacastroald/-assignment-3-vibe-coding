@@ -1,5 +1,18 @@
 import { useState } from 'react'
 import { addItem, removeItem, updateQuantity, getTotal, getItemCount } from './engine'
+
+const BELT_NAME = "Levi's Belt"
+const LIGHT_WASH_KEY = '501 original fit – light wash'
+
+function syncBelt(items) {
+  const lightWashQty = items
+    .filter(item => item.name.toLowerCase() === LIGHT_WASH_KEY)
+    .reduce((sum, item) => sum + item.quantity, 0)
+  const hasBelt = items.some(item => item.name === BELT_NAME)
+  if (lightWashQty >= 2 && !hasBelt) return addItem(items, BELT_NAME, 0, 1)
+  if (lightWashQty < 2 && hasBelt) return removeItem(items, BELT_NAME)
+  return items
+}
 import { loadItems, saveItems } from './storage'
 import Navbar from './components/Navbar'
 import ImageCarousel from './components/ImageCarousel'
@@ -18,16 +31,16 @@ function App() {
   const [colorImageIdx, setColorImageIdx] = useState(0)
 
   const handleAddToCart = (name, price, qty, waist, length) => {
-    setCart((prev) => saveItems(addItem(prev, name, price, qty, waist, length)))
+    setCart((prev) => saveItems(syncBelt(addItem(prev, name, price, qty, waist, length))))
     setCartOpen(true)
   }
 
   const handleRemove = (name) => {
-    setCart((prev) => saveItems(removeItem(prev, name)))
+    setCart((prev) => saveItems(syncBelt(removeItem(prev, name))))
   }
 
   const handleUpdateQty = (name, qty) => {
-    setCart((prev) => saveItems(updateQuantity(prev, name, qty)))
+    setCart((prev) => saveItems(syncBelt(updateQuantity(prev, name, qty))))
   }
 
   const handleCheckout = () => {

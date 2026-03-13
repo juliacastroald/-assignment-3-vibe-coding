@@ -1,4 +1,23 @@
+import { useState } from 'react'
+
+const SHIPPING_ESTIMATES = [
+  { prefixes: ['0', '1', '2'], days: '2–4 business days' },
+  { prefixes: ['3'],           days: '4–6 business days' },
+  { prefixes: ['4', '5', '6'], days: '3–5 business days' },
+  { prefixes: ['7', '8'],      days: '4–6 business days' },
+  { prefixes: ['9'],           days: '5–7 business days' },
+]
+
+function getShippingEstimate(zip) {
+  if (!/^\d{5}$/.test(zip)) return null
+  const entry = SHIPPING_ESTIMATES.find(e => e.prefixes.includes(zip[0]))
+  return entry ? entry.days : '5–7 business days'
+}
+
 function Cart({ cart, total, onClose, onRemove, onUpdateQty, onCheckout }) {
+  const [zip, setZip] = useState('')
+  const shippingEstimate = getShippingEstimate(zip)
+
   return (
     <div className="cart-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="cart-drawer">
@@ -21,7 +40,7 @@ function Cart({ cart, total, onClose, onRemove, onUpdateQty, onCheckout }) {
                     fontSize: '2rem',
                   }}
                 >
-                  {item.name.includes('Jacket') ? '🧥' : item.name.includes('Tee') ? '👕' : '👖'}
+                  {item.name.includes('Jacket') ? '🧥' : item.name.includes('Tee') ? '👕' : item.name.includes('Belt') ? '🪢' : '👖'}
                 </div>
                 <div className="cart-item-info">
                   <p className="cart-item-name">{item.name}</p>
@@ -30,20 +49,26 @@ function Cart({ cart, total, onClose, onRemove, onUpdateQty, onCheckout }) {
                       Size: W{item.waist} × L{item.length}
                     </p>
                   )}
-                  <p className="cart-item-price">${item.value.toFixed(2)} each</p>
-                  <div className="cart-item-controls">
-                    <div className="cart-qty-control">
-                      <button onClick={() => onUpdateQty(item.name, item.quantity - 1)}>−</button>
-                      <span>{item.quantity}</span>
-                      <button onClick={() => onUpdateQty(item.name, item.quantity + 1)}>+</button>
-                    </div>
-                    <button className="cart-remove" onClick={() => onRemove(item.name)}>
-                      Remove
-                    </button>
-                  </div>
+                  {item.value === 0 ? (
+                    <p className="cart-item-free-badge">🎁 FREE – Promotional Gift</p>
+                  ) : (
+                    <>
+                      <p className="cart-item-price">${item.value.toFixed(2)} each</p>
+                      <div className="cart-item-controls">
+                        <div className="cart-qty-control">
+                          <button onClick={() => onUpdateQty(item.name, item.quantity - 1)}>−</button>
+                          <span>{item.quantity}</span>
+                          <button onClick={() => onUpdateQty(item.name, item.quantity + 1)}>+</button>
+                        </div>
+                        <button className="cart-remove" onClick={() => onRemove(item.name)}>
+                          Remove
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div style={{ fontWeight: 700, fontSize: '0.9rem', flexShrink: 0 }}>
-                  ${(item.value * item.quantity).toFixed(2)}
+                  {item.value === 0 ? <span style={{ color: '#2a9d5c' }}>FREE</span> : `$${(item.value * item.quantity).toFixed(2)}`}
                 </div>
               </div>
             ))
@@ -51,6 +76,25 @@ function Cart({ cart, total, onClose, onRemove, onUpdateQty, onCheckout }) {
         </div>
 
         <div className="cart-footer">
+          <div className="zip-estimate">
+            <div className="zip-row">
+              <label className="zip-label" htmlFor="zip-input">Estimate shipping:</label>
+              <input
+                id="zip-input"
+                className="zip-input"
+                type="text"
+                inputMode="numeric"
+                maxLength={5}
+                placeholder="ZIP code"
+                value={zip}
+                onChange={(e) => setZip(e.target.value.replace(/\D/g, ''))}
+              />
+            </div>
+            {shippingEstimate && (
+              <p className="shipping-estimate">🚚 Estimated delivery: <strong>{shippingEstimate}</strong></p>
+            )}
+          </div>
+
           <div className="cart-total-row">
             <span>Subtotal</span>
             <span>${total.toFixed(2)}</span>
