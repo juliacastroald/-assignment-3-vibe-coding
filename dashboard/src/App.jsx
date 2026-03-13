@@ -59,12 +59,18 @@ function App() {
 
   const toggleDarkMode = () => {
     setIsDarkMode((d) => !d)
-    setColumnFilter('')
   }
 
   const handleExport = () => {
     if (!dashData) return
-    const csv = dashData.headers.join(',')
+    const headerLine = dashData.headers.join(',')
+    const dataLines = dashData.analysis.rows.map((row) =>
+      dashData.headers.map((h) => {
+        const val = String(row[h] ?? '')
+        return val.includes(',') || val.includes('"') ? `"${val.replace(/"/g, '""')}"` : val
+      }).join(',')
+    )
+    const csv = [headerLine, ...dataLines].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
