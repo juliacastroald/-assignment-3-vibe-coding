@@ -1,8 +1,16 @@
 
-
 const MAX_ROWS = 500
-const CHART_POINTS = 80   
+const CHART_POINTS = 80
 const SCATTER_POINTS = 150
+
+
+function isDateLike(v) {
+  if (!v) return false
+  const s = String(v).trim()
+  if (!isNaN(parseFloat(s)) && isFinite(Number(s))) return false
+  const d = new Date(s)
+  return !isNaN(d.getTime())
+}
 
 
 export function analyzeColumns(headers, rows) {
@@ -16,12 +24,15 @@ export function analyzeColumns(headers, rows) {
       .filter((v) => !isNaN(v))
 
     const isNumeric = nums.length > 0 && nums.length / values.length > 0.7
+    const dateCount = isNumeric ? 0 : values.filter((v) => isDateLike(v)).length
+    const isDate = !isNumeric && dateCount > 0 && dateCount / values.length > 0.7
     const unique = [...new Set(values)]
     const mean = nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : 0
 
     return {
       name: header,
       isNumeric,
+      isDate,
       values,
       nums,
       unique,
@@ -37,8 +48,9 @@ export function analyzeColumns(headers, rows) {
   const catCols = cols.filter(
     (c) => !c.isNumeric && c.unique.length >= 2 && c.unique.length <= 20
   )
+  const dateCols = cols.filter((c) => c.isDate)
 
-  return { cols, numericCols, catCols, rows: limited }
+  return { cols, numericCols, catCols, dateCols, rows: limited }
 }
 
 
@@ -184,7 +196,6 @@ export function prepareAreaData(analysis) {
 
   const bins = Array.from({ length: BIN_COUNT }, (_, i) => {
     const lo = col.min + i * binSize
-    const hi = lo + binSize
     return { range: `${lo.toFixed(1)}`, count: 0 }
   })
 
@@ -200,5 +211,54 @@ export function prepareAreaData(analysis) {
     title: `${col.name} — Distribution`,
     yLabel: 'Count',
     xLabel: col.name,
+  }
+}
+
+export function prepareRadarData(analysis) {
+  const { numericCols } = analysis
+  const cols = numericCols.slice(0, 6)
+  if (cols.length < 3) return null
+  const maxMean = Math.max(...cols.map((c) => Math.abs(c.mean)))
+  if (maxMean === 0) return null
+  return {
+    data: cols.map((c) => ({
+      col: c.name,
+      value: parseFloat(((Math.abs(c.mean) / maxMean) * 100).toFixed(1)),
+    })),
+    title: 'Column Means — Normalized',
+  }
+}
+
+export function prepareTreemapData(analysis) {
+  const { catCols, rows } = analysis
+  const goodCat =
+    catCols.find((c) => c.unique.length >= 2 && c.unique.length <= 15) || catCols[0]
+  if (!goodCat) return null
+  const counts = {}
+  rows.forEach((row) => {
+    const val = row[goodCat.name]
+    if (val != null && val !== '') counts[val] = (counts[val] || 0) + 1
+  })
+  return {
+    data: Object.entries(counts)
+      .map(([name, size]) => ({ name, size }))
+      .sort((a, b) => b.size - a.size)
+      .slice(0, 15),
+    title: `${goodCat.name} — Treemap`,
+  }
+}
+
+export function prepareComposedData(analysis) {
+  const barResult = prepareBarData(analysis)
+  if (!barResult) return null
+  let runSum = 0
+  const data = barResult.data.map((d, i) => {
+    runSum += d.value
+    return { ...d, avg: parseFloat((runSum / (i + 1)).toFixed(2)) }
+  })
+  return {
+    ...barResult,
+    data,
+    title: `${barResult.title} + Trend`,
   }
 }

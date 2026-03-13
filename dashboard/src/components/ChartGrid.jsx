@@ -1,17 +1,37 @@
-import BarCard     from './charts/BarCard'
-import LineCard    from './charts/LineCard'
-import PieCard     from './charts/PieCard'
-import ScatterCard from './charts/ScatterCard'
-import AreaCard    from './charts/AreaCard'
+import BarCard      from './charts/BarCard'
+import LineCard     from './charts/LineCard'
+import PieCard      from './charts/PieCard'
+import ScatterCard  from './charts/ScatterCard'
+import AreaCard     from './charts/AreaCard'
+import RadarCard    from './charts/RadarCard'
+import TreemapCard  from './charts/TreemapCard'
+import ComposedCard from './charts/ComposedCard'
 
-function ChartGrid({ charts }) {
+const CARD_MAP = {
+  bar:      BarCard,
+  line:     LineCard,
+  pie:      PieCard,
+  scatter:  ScatterCard,
+  area:     AreaCard,
+  radar:    RadarCard,
+  treemap:  TreemapCard,
+  composed: ComposedCard,
+}
+
+function ChartGrid({ charts, selectedCharts }) {
+  const isOdd = selectedCharts.length % 2 !== 0
+
   return (
     <div className="chart-grid">
-      <div className="chart-card"><BarCard     config={charts.bar}     /></div>
-      <div className="chart-card"><LineCard    config={charts.line}    /></div>
-      <div className="chart-card"><PieCard     config={charts.pie}     /></div>
-      <div className="chart-card"><ScatterCard config={charts.scatter} /></div>
-      <div className="chart-card full-width"><AreaCard config={charts.area} /></div>
+      {selectedCharts.map((key, i) => {
+        const Card = CARD_MAP[key]
+        const isLastOdd = isOdd && i === selectedCharts.length - 1
+        return (
+          <div key={key} className={`chart-card${isLastOdd ? ' full-width' : ''}`}>
+            <Card config={charts[key]} />
+          </div>
+        )
+      })}
     </div>
   )
 }

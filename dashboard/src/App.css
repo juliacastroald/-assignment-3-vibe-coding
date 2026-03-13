@@ -230,7 +230,7 @@
 
 /* ── Column filter ───────────────────────────────────────── */
 
-.filter-bar { margin-bottom: 1rem; }
+.filter-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
 
 .column-filter {
   padding: 0.4rem 0.75rem;
@@ -264,3 +264,113 @@
 }
 
 .stat-card:hover .stat-tooltip { display: block; }
+
+/* ── Date range filter ───────────────────────────────────── */
+
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: white;
+  border: 1px solid #c4cce0;
+  border-radius: 8px;
+  padding: 0.3rem 0.65rem;
+}
+
+.date-filter-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #8892a8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.date-filter-select, .date-input {
+  border: 1px solid #c4cce0;
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  color: #1e2a4a;
+  background: white;
+}
+
+.date-input:focus, .date-filter-select:focus { border-color: #4361ee; }
+
+.date-separator { font-size: 0.9rem; color: #8892a8; }
+
+.date-clear-btn {
+  background: #f0f2f7;
+  border: 1px solid #c4cce0;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: inherit;
+  color: #4a5568;
+  transition: background 0.15s;
+}
+.date-clear-btn:hover { background: #e2e8f0; }
+
+/* ── Chart picker ────────────────────────────────────────── */
+
+.chart-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  background: white;
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.chart-picker-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #8892a8;
+  margin-right: 0.25rem;
+  white-space: nowrap;
+}
+
+.chart-pick-option {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  border: 1.5px solid #c4cce0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #4a5568;
+  background: #f0f2f7;
+  user-select: none;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.chart-pick-option input { display: none; }
+
+.chart-pick-option.on { background: #4361ee; border-color: #4361ee; color: white; }
+
+.chart-pick-option.maxed { opacity: 0.4; cursor: not-allowed; }
+
+.chart-pick-option:not(.on):not(.maxed):hover {
+  border-color: #4361ee;
+  background: #eef1fd;
+  color: #4361ee;
+}
+
+/* Dark mode additions */
+.app.dark .date-filter { background: #1e2a4a; border-color: #3a4a6a; }
+.app.dark .date-input,
+.app.dark .date-filter-select { background: #1e2a4a; border-color: #3a4a6a; color: #e0e0e0; }
+.app.dark .date-clear-btn { background: #2a3a5a; border-color: #3a4a6a; color: #e0e0e0; }
+.app.dark .chart-picker { background: #1e2a4a; }
+.app.dark .chart-pick-option { background: #2a3a5a; border-color: #3a4a6a; color: #c0c8d8; }
+.app.dark .chart-pick-option.on { background: #4361ee; border-color: #4361ee; color: white; }
