@@ -67,7 +67,6 @@ function Game({ onGameOver }) {
       if (e.code === 'KeyP') {
         e.preventDefault()
         if (s.paused) {
-          s.elapsed = 0
           s.lastTime = null
           s.paused = false
         } else {
@@ -117,7 +116,7 @@ function Game({ onGameOver }) {
 
       for (const c of s.collectibles) {
         if (c.collected) continue
-        const hitX = s.scrollX - c.x
+        const hitX = c.x - s.scrollX
         if (
           PLAYER_X < hitX + c.r &&
           PLAYER_X + PLAYER_W > hitX - c.r &&
@@ -214,7 +213,7 @@ function Game({ onGameOver }) {
       ctx.fillStyle = '#ffe566'
       ctx.fillText(`Stars: ${stars ? stars.quantity : 0}`, 10, 30)
 
-      ctx.fillStyle = '#16213e'
+      ctx.fillStyle = '#ffffff'
       ctx.textAlign = 'right'
       ctx.fillText(`Score: ${getTotal(s.inventory)}`, W - 10, 10)
 
